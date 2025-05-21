@@ -5,6 +5,9 @@ import textwrap
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 import torch
 
+# Use smaller model and optimize loading
+MODEL_NAME = "google/flan-t5-small"
+DEVICE = "cpu"
 
 class SpotifyTrack():
     def __init__(self, uri, name, artist, album):
@@ -18,11 +21,16 @@ class SpotifyPlaylist():
     def __init__(self, token_info=None) -> None:      
         scope = 'playlist-modify-public playlist-modify-private user-library-read'
         
-        # Initialize the model and tokenizer
+        # Initialize the model and tokenizer with optimizations
         print("Loading model and tokenizer (this might take a minute)...")
-        self.model_name = "google/flan-t5-base"
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-        self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
+        self.model_name = MODEL_NAME
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, device_map="cpu")
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(
+            self.model_name,
+            device_map="cpu",
+            torch_dtype=torch.float32,
+            low_cpu_mem_usage=True
+        )
         
         if token_info:
             self.sp = spotipy.Spotify(auth=token_info['access_token'])
