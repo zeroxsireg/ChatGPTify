@@ -2,6 +2,7 @@ spotipy==2.23.0
 Flask==3.1.1
 gunicorn==21.2.0
 --extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.1.0+cpu
-transformers[torch]==4.35.0
-accelerate==0.27.0 
+torch==2.7.0+cpu
+transformers==4.35.0
+accelerate==0.27.0
+packaging==23.2 
