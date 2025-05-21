@@ -15,7 +15,7 @@ class SpotifyTrack():
 
 
 class SpotifyPlaylist():
-    def __init__(self) -> None:      
+    def __init__(self, token_info=None) -> None:      
         scope = 'playlist-modify-public playlist-modify-private user-library-read'
         
         # Initialize the model and tokenizer
@@ -24,14 +24,18 @@ class SpotifyPlaylist():
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
         
-        self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=os.environ['SPOTIFY_CLIENT_ID'],
-                                               client_secret=os.environ['SPOTIFY_CLIENT_SECRET'],
-                                               redirect_uri=os.environ['SPOTIFY_REDIRECT_URI'],
-                                               scope=scope))
+        if token_info:
+            self.sp = spotipy.Spotify(auth=token_info['access_token'])
+        else:
+            self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
+                client_id=os.environ['SPOTIFY_CLIENT_ID'],
+                client_secret=os.environ['SPOTIFY_CLIENT_SECRET'],
+                redirect_uri=os.environ['SPOTIFY_REDIRECT_URI'],
+                scope=scope
+            ))
 
         self.playlist = None
         self.name = "AI presents..."
-
         self.playlist_response = None
         self.last_response = None
     

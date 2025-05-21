@@ -7,7 +7,7 @@ import os
 
 os.environ['SPOTIFY_CLIENT_ID']     = "307b89a2e69744868e3858ab05e58331"
 os.environ['SPOTIFY_CLIENT_SECRET'] = "8d7c4a6cd17448a0a25d25fe9ef215a4"
-os.environ['SPOTIFY_REDIRECT_URI']  = "https://chat-gp-tify.vercel.app"
+os.environ['SPOTIFY_REDIRECT_URI']  = "https://chat-gp-tify.vercel.app/callback"
 
 
 if __name__ == "__main__":
