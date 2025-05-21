@@ -13,8 +13,8 @@
         }
     ],
     "env": {
-        "SPOTIFY_CLIENT_ID": "@spotify_client_id",
-        "SPOTIFY_CLIENT_SECRET": "@spotify_client_secret",
+        "SPOTIFY_CLIENT_ID": "307b89a2e69744868e3858ab05e58331",
+        "SPOTIFY_CLIENT_SECRET": "8d7c4a6cd17448a0a25d25fe9ef215a4",
         "SPOTIFY_REDIRECT_URI": "https://chat-gp-tify.vercel.app/callback"
     }
 } 
