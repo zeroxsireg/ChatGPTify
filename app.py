@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, session, url_for
+from flask import Flask, request, redirect, session, url_for, render_template
 import os
 from chatgptify import SpotifyPlaylist
 import spotipy
@@ -25,11 +25,7 @@ def index():
     
     # Get the authorization URL
     auth_url = sp_oauth.get_authorize_url()
-    return f'''
-        <h1>ChatGPTify</h1>
-        <p>Click below to authorize with Spotify:</p>
-        <a href="{auth_url}">Login with Spotify</a>
-    '''
+    return render_template('index.html', auth_url=auth_url)
 
 @app.route('/callback')
 def callback():
@@ -60,7 +56,7 @@ def create_playlist():
         return redirect(url_for('index'))
     
     try:
-        play = SpotifyPlaylist()
+        play = SpotifyPlaylist(token_info)  # Pass the token info to the SpotifyPlaylist class
         # For demonstration, creating a simple ambient playlist
         play.ask_chatgpt(
             prompt="create a playlist with relaxing electronic ambient music suitable for deep focus and work",
@@ -70,12 +66,7 @@ def create_playlist():
         play.ask_chatgpt(prompt="", prompt_type="name")
         play.save_playlist()
         
-        return f'''
-            <h1>Success!</h1>
-            <p>Your playlist has been created.</p>
-            <p>Check your Spotify account for the new playlist.</p>
-            <a href="/">Create Another Playlist</a>
-        '''
+        return render_template('success.html')
     except Exception as e:
         return f'Error creating playlist: {str(e)}', 500
 
