@@ -8,9 +8,9 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)  # for session handling
 
 # Spotify OAuth Configuration
-SPOTIFY_CLIENT_ID = os.environ.get('307b89a2e69744868e3858ab05e58331')
-SPOTIFY_CLIENT_SECRET = os.environ.get('8d7c4a6cd17448a0a25d25fe9ef215a4')
-SPOTIFY_REDIRECT_URI = os.environ.get('https://chat-gp-tify.vercel.app/callback')
+SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '307b89a2e69744868e3858ab05e58331')
+SPOTIFY_CLIENT_SECRET = os.environ.get('SPOTIFY_CLIENT_SECRET', '8d7c4a6cd17448a0a25d25fe9ef215a4')
+SPOTIFY_REDIRECT_URI = os.environ.get('SPOTIFY_REDIRECT_URI', 'https://chat-gp-tify.vercel.app/callback')
 SCOPE = 'playlist-modify-public playlist-modify-private user-library-read'
 
 @app.route('/')
