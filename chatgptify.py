@@ -1,8 +1,9 @@
 import os
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-from chatgpt_wrapper import ChatGPT
 import textwrap
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+import torch
 
 
 class SpotifyTrack():
@@ -17,21 +18,26 @@ class SpotifyPlaylist():
     def __init__(self) -> None:      
         scope = 'playlist-modify-public playlist-modify-private user-library-read'
         
-        self.bot =  ChatGPT()
-        self.sp  = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=os.environ['SPOTIFY_CLIENT_ID'],
+        # Initialize the model and tokenizer
+        print("Loading model and tokenizer (this might take a minute)...")
+        self.model_name = "google/flan-t5-base"
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
+        
+        self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=os.environ['SPOTIFY_CLIENT_ID'],
                                                client_secret=os.environ['SPOTIFY_CLIENT_SECRET'],
                                                redirect_uri=os.environ['SPOTIFY_REDIRECT_URI'],
                                                scope=scope))
 
         self.playlist = None
-        self.name = "ChatGPT presents..."
+        self.name = "AI presents..."
 
         self.playlist_response = None
         self.last_response = None
     
 
     def ask_chatgpt(self, prompt : str, prompt_type : str = "", display=True) -> None:
-        """Ask prompt to ChatGPT
+        """Ask prompt to the local model
 
         Args:
             prompt (str): User prompt to ask. 
@@ -47,40 +53,52 @@ class SpotifyPlaylist():
                 * prompt_type = "name"     - For playlist name suggestion
                 * prompt_type = ""         - Unrestricted prompts 
 
-            display (bool, optional): Whether to display ChatGPT output. Defaults to True.
+            display (bool, optional): Whether to display output. Defaults to True.
 
         Raises:
-            RuntimeError: Upon ChatGPT execution failure.
+            RuntimeError: Upon model execution failure.
         """        
-        print("Asking ChatGPT...")
+        print("Generating response...")
         
         if prompt_type == "playlist": 
-            prompt = "Provide a playlist containing songs " + prompt
+            prompt = "Create a playlist with 10 songs " + prompt + "\nFormat: 1. Song Name by Artist Name\n2. Song Name by Artist Name\netc."
         elif prompt_type == "name":
             prompt = "What might be a suitable and creative name for this playlist?" \
                      " Only provide the name and no other details."
        
-        success, response, message = self.bot.ask(prompt)
-
-        if not success:
-            raise RuntimeError(message)
-
-        if prompt_type == "playlist": self.playlist_response = response
-        if prompt_type == "name": self.name = str(response.replace('"',''))
-        self.last_response = response
-        
-        if display:
-            width = 70
-            print("-" * width)
-            print("     " * (width // 11) + "ChatGPT")
-            prompt_str = textwrap.fill("Prompt: " + prompt)
-            print(prompt_str)
-            print("-" * width)
-            display_str = textwrap.fill(response)
-            print(display_str)
-            print()
-            print("-" * width)
-    
+        try:
+            # Tokenize and generate
+            inputs = self.tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
+            outputs = self.model.generate(
+                **inputs,
+                max_length=256,
+                num_return_sequences=1,
+                temperature=0.7,
+                do_sample=True,
+                no_repeat_ngram_size=2
+            )
+            response_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+            
+            if prompt_type == "playlist": 
+                self.playlist_response = response_text
+            if prompt_type == "name": 
+                self.name = str(response_text.replace('"',''))
+            self.last_response = response_text
+            
+            if display:
+                width = 70
+                print("-" * width)
+                print("     " * (width // 11) + "AI Response")
+                prompt_str = textwrap.fill("Prompt: " + prompt)
+                print(prompt_str)
+                print("-" * width)
+                display_str = textwrap.fill(response_text)
+                print(display_str)
+                print()
+                print("-" * width)
+                
+        except Exception as e:
+            raise RuntimeError(f"Failed to get response from model: {str(e)}")
 
     def create_playlist(self) -> None:
         """Queries Spotify API to retrieve tracks 
